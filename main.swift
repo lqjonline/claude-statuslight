@@ -142,6 +142,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         header.frame = NSRect(x: 20, y: 475, width: 580, height: 20)
 
         let mapping = NSTextField(labelWithString: """
+        🟢 空闲    ←  SessionStart（Claude 启动时）
         🟡 执行中  ←  PreToolUse（工具调用前）/ UserPromptSubmit（提交提示词）
         🔴 需确认  ←  Notification（权限请求通知）
         🟢 空闲    ←  Stop（本轮响应结束）
@@ -161,6 +162,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let configText = """
         {
           "hooks": {
+            "SessionStart": [
+              {
+                "matcher": "",
+                "hooks": [
+                  {
+                    "type": "command",
+                    "command": "curl -s -X POST http://localhost:9527/state -H 'Content-Type: application/json' -d '{\\"state\\":\\"idle\\"}'"
+                  }
+                ]
+              }
+            ],
             "PreToolUse": [
               {
                 "matcher": "",
@@ -249,6 +261,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let config = """
         {
           "hooks": {
+            "SessionStart": [
+              {
+                "matcher": "",
+                "hooks": [
+                  {
+                    "type": "command",
+                    "command": "curl -s -X POST http://localhost:9527/state -H 'Content-Type: application/json' -d '{\\"state\\":\\"idle\\"}'"
+                  }
+                ]
+              }
+            ],
             "PreToolUse": [
               {
                 "matcher": "",
