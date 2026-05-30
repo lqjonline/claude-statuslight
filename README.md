@@ -3,18 +3,19 @@
 macOS 菜单栏状态灯，实时显示 [Claude Code](https://claude.ai/code) 的工作状态。
 
 <p align="center">
-  🟢 空闲 &nbsp;—&nbsp; 🟡 执行中 &nbsp;—&nbsp; 🔴 需确认
+  🟢 空闲 &nbsp;—&nbsp; 🟡 执行中 &nbsp;—&nbsp; 🔴 需确认 &nbsp;—&nbsp; ⚪️ 离线
 </p>
 
-通过 Claude Code 的 **hooks** 机制自动切换：Claude 开始调用工具 → 黄灯，请求权限 → 红灯，任务完成 → 绿灯。看一眼菜单栏就知道 Claude 在干嘛，无需切窗口。
+通过 Claude Code 的 **hooks** 机制自动切换：Claude 开始调用工具 → 黄灯，请求权限 → 红灯，任务完成 → 绿灯，Claude 退出 → 灰灯。看一眼菜单栏就知道 Claude 在干嘛，无需切窗口。
 
 ## 效果
 
 | 菜单栏显示 | 状态 | 何时触发 |
 |-----------|------|---------|
-| `Claude 🟢 空闲` | 空闲 | Claude 停止、工具调用完成 |
+| `Claude 🟢 空闲` | 空闲 | 本轮响应结束（Stop） |
 | `Claude 🟡 执行中` | 工作中 | 工具调用前、提交提示词 |
 | `Claude 🔴 需确认` | 等待中 | 权限请求通知弹出 |
+| `Claude ⚪️ 离线` | 离线 | Claude 进程退出（SessionEnd） |
 
 ## 安装
 
@@ -87,6 +88,17 @@ open ClaudeStatusLight.app
           }
         ]
       }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s -X POST http://localhost:9527/state -H 'Content-Type: application/json' -d '{\"state\":\"offline\"}'"
+          }
+        ]
+      }
     ]
   }
 }
@@ -99,10 +111,11 @@ open ClaudeStatusLight.app
 ```
 Claude Code hooks (curl)  →  HTTP :9527  →  菜单栏标题实时更新
 ─────────────────────────────────────────────────────────────
-  PreToolUse      ──────────  🟡 执行中
-  UserPromptSubmit ─────────  🟡 执行中
-  Notification    ──────────  🔴 需确认
-  Stop            ──────────  🟢 空闲
+  PreToolUse       ──────────  🟡 执行中
+  UserPromptSubmit ──────────  🟡 执行中
+  Notification     ──────────  🔴 需确认
+  Stop             ──────────  🟢 空闲
+  SessionEnd       ──────────  ⚪️ 离线
 ```
 
 ## 特性

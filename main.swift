@@ -59,6 +59,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         "idle":    "Claude 🟢 空闲",
         "working": "Claude 🟡 执行中",
         "confirm": "Claude 🔴 需确认",
+        "offline": "Claude ⚪️ 离线",
     ]
 
     // 系统音效：idle=完成提示，confirm=需关注提醒
@@ -73,12 +74,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let idleItem    = NSMenuItem(title: "空闲",   action: #selector(setIdle),    keyEquivalent: "")
         let workItem    = NSMenuItem(title: "执行中", action: #selector(setWorking), keyEquivalent: "")
         let confirmItem = NSMenuItem(title: "需确认", action: #selector(setConfirm), keyEquivalent: "")
+        let offlineItem = NSMenuItem(title: "离线",   action: #selector(setOffline), keyEquivalent: "")
         soundMenuItem   = NSMenuItem(title: "关闭声音", action: #selector(toggleSound), keyEquivalent: "")
         let helpItem    = NSMenuItem(title: "Claude配置", action: #selector(showHelp), keyEquivalent: "")
         let quitItem    = NSMenuItem(title: "退出",   action: #selector(quitApp),    keyEquivalent: "q")
         idleItem.target = self
         workItem.target = self
         confirmItem.target = self
+        offlineItem.target = self
         soundMenuItem?.target = self
         helpItem.target = self
         quitItem.target = self
@@ -86,6 +89,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(idleItem)
         menu.addItem(workItem)
         menu.addItem(confirmItem)
+        menu.addItem(offlineItem)
         menu.addItem(.separator())
         menu.addItem(soundMenuItem!)
         menu.addItem(helpItem)
@@ -115,6 +119,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func setIdle()    { applyStatus("idle") }
     @objc func setWorking() { applyStatus("working") }
     @objc func setConfirm() { applyStatus("confirm") }
+    @objc func setOffline() { applyStatus("offline") }
     @objc func quitApp()    { NSApp.terminate(nil) }
 
     @objc func toggleSound() {
@@ -139,7 +144,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let mapping = NSTextField(labelWithString: """
         🟡 执行中  ←  PreToolUse（工具调用前）/ UserPromptSubmit（提交提示词）
         🔴 需确认  ←  Notification（权限请求通知）
-        🟢 空闲    ←  Stop（停止）/ PostToolUse（工具完成后）
+        🟢 空闲    ←  Stop（本轮响应结束）
+        ⚪️ 离线    ←  SessionEnd（Claude 退出时）
 
         将下方 JSON 复制到 .claude/settings.json 的 hooks 字段中即可启用：
         """)
@@ -195,6 +201,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                   {
                     "type": "command",
                     "command": "curl -s -X POST http://localhost:9527/state -H 'Content-Type: application/json' -d '{\\"state\\":\\"idle\\"}'"
+                  }
+                ]
+              }
+            ],
+            "SessionEnd": [
+              {
+                "matcher": "",
+                "hooks": [
+                  {
+                    "type": "command",
+                    "command": "curl -s -X POST http://localhost:9527/state -H 'Content-Type: application/json' -d '{\\"state\\":\\"offline\\"}'"
                   }
                 ]
               }
@@ -272,6 +289,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                   {
                     "type": "command",
                     "command": "curl -s -X POST http://localhost:9527/state -H 'Content-Type: application/json' -d '{\\"state\\":\\"idle\\"}'"
+                  }
+                ]
+              }
+            ],
+            "SessionEnd": [
+              {
+                "matcher": "",
+                "hooks": [
+                  {
+                    "type": "command",
+                    "command": "curl -s -X POST http://localhost:9527/state -H 'Content-Type: application/json' -d '{\\"state\\":\\"offline\\"}'"
                   }
                 ]
               }
